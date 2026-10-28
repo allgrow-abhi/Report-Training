@@ -13,13 +13,51 @@ report 50111 "Inventory Valuation AS"
             column(ItemNo; "No.") { }
             column(ItemDescription; Description) { }
             column(Item_Category_Code; "Item Category Code") { }
+            column(ItemCategoryName; ItemCategoryName) { }
+            column(UnitCost; UnitCost) { }
+            column(AsOfDate; ValuationDate) { }
             dataitem("Value Entry"; "Value Entry")
             {
                 DataItemLink = "Item No." = field("No.");
                 column(Location_Code; "Location Code") { }
-                column(Item_Ledger_Entry_Quantity; "Item Ledger Entry Quantity") { }
+                column(Quantity; "Item Ledger Entry Quantity") { }
                 column(Cost_Amount__Actual_; "Cost Amount (Actual)") { }
+                column(LocationName; LocationName) { }
+                trigger OnPreDataItem()
+                begin
+                    if Format(ValuationDate) <> '' then begin
+                        SetFilter("Posting Date", '..%1', ValuationDate);
+                    end;
+
+                    if LocationCode <> '' then begin
+                        SetRange("Location Code", LocationCode);
+                    end;
+                end;
+
+                trigger OnAfterGetRecord()
+                begin
+                    if LocationCategoryRec.Get(LocationCategoryRec.Code) then begin
+                        LocationName := LocationCategoryRec.Name;
+                    end;
+                end;
             }
+            trigger OnAfterGetRecord()
+            begin
+                if "Value Entry"."Item Ledger Entry Quantity" <> 0 then begin
+                    UnitCost := "Value Entry"."Cost Amount (Actual)" / "Value Entry"."Item Ledger Entry Quantity";
+                end;
+
+                if ItemCategoryRec.Get(ItemCategoryRec.Code) then begin
+                    ItemCategoryName := ItemCategoryRec.Description;
+                end;
+            end;
+
+            trigger OnPreDataItem()
+            begin
+                if ItemCategoryCode <> '' then begin
+                    SetRange("Item Category Code", ItemCategoryCode);
+                end;
+            end;
         }
     }
 
@@ -31,12 +69,34 @@ report 50111 "Inventory Valuation AS"
         {
             area(Content)
             {
-                group(GroupName)
+                group(Filter)
                 {
-                    // field(Name; SourceExpression)
-                    // {
+                    field(ValuationDate; ValuationDate)
+                    {
+                        Caption = 'Valuation Date';
+                        ApplicationArea = all;
+                    }
+                    field(ItemCategoryCode; ItemCategoryCode)
+                    {
+                        Caption = 'Item Category Code';
+                        ApplicationArea = all;
+                        TableRelation = "Item Category".Code;
+                    }
+                    field(LocationCode; LocationCode)
+                    {
+                        Caption = 'Location Code';
+                        ApplicationArea = all;
+                        TableRelation = Location.Code;
+                    }
 
-                    // }
+                    group(Option)
+                    {
+                        field(PageBreak; PageBreak)
+                        {
+                            Caption = 'Page Break';
+                            ApplicationArea = all;
+                        }
+                    }
                 }
             }
         }
@@ -63,5 +123,13 @@ report 50111 "Inventory Valuation AS"
     // }
 
     var
-        myInt: Integer;
+        UnitCost: Decimal;
+        ValuationDate: Date;
+        ItemCategoryCode: Code[50];
+        LocationCode: Code[50];
+        PageBreak: Boolean;
+        ItemCategoryRec: Record "Item Category";
+        LocationCategoryRec: Record Location;
+        ItemCategoryName: Text[100];
+        LocationName: Text[100];
 }
