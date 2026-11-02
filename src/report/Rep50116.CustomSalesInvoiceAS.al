@@ -152,7 +152,6 @@ report 50116 "Custom Sales Invoice AS"
     var
         PostedSalesInvoiceRec: Record "Sales Invoice Header";
         CompanyInformationRec: Record "Company Information";
-        VATSummary: Record "VAT Summary AS" temporary;
         BillToAdressLine: array[7] of Code[100];
         ShipToAdressLine: array[8] of Code[100];
         CompanyData: array[4] of Text;
