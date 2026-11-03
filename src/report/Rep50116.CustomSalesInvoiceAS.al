@@ -10,7 +10,7 @@ report 50116 "Custom Sales Invoice AS"
     {
         dataitem("Sales Invoice Header"; "Sales Invoice Header")
         {
-            requestfilterfields = "No.";
+            RequestFilterFields = "No.";
             column(Sales_Invoice_No; "No.") { }
             column(Posting_Date; "Posting Date") { }
             column(Due_Date; "Due Date") { }
